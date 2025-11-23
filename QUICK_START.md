@@ -399,13 +399,13 @@ python scripts/pretrain.py \
 
 | Step | Time | Notes |
 |------|------|-------|
-| Setup | 10 min | Virtual env + dependencies |
-| Data Collection | 4-6 days | 50GB download + processing |
-| Tokenizer Training | 1-2 hours | Depends on data size |
+| Setup | 20-40 min | Virtual env + dependencies |
+| Data Collection | 1-2 days | 50GB download + processing (can be parallelized) |
+| Tokenizer Training | 2-4 hours | Depends on data size, 24 CPU cores |
 | Pretraining (Mac) | 10+ days | 8GB RAM, overnight runs |
-| Pretraining (Linux) | 2-3 days | 120GB RAM, continuous |
+| Pretraining (Linux 128GB) | 12-24 hours | 128GB RAM, batch_size=24, optimized |
 
-**Total (Linux):** ~1 week  
+**Total (Linux 128GB):** ~1.5-2.5 days (with optimized batch_size=24)  
 **Total (Mac):** ~2-3 weeks
 
 ---

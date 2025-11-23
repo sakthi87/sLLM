@@ -1,5 +1,5 @@
 # Pretraining Configuration - GPT-2 Large Architecture
-# Optimized for Linux VM (120GB RAM, 24 CPU cores)
+# Optimized for RedHat Linux (128GB RAM, 24 CPU cores, 1TB SSD)
 # Target: English fluency first, then domain-specific fine-tuning
 
 model:
@@ -12,13 +12,15 @@ model:
   dropout: 0.15             # Dropout rate (increased from 0.1 for better regularization)
 
 training:
-  # Training parameters - OPTIMIZED for 120GB RAM and 24 CPU cores
-  batch_size: 4             # Batch size (adjust based on memory)
-  gradient_accumulation_steps: 8  # Effective batch size = 32
+  # Training parameters - OPTIMIZED for 128GB RAM and 24 CPU cores
+  # Memory analysis: With batch_size=24, uses ~15.2GB (11.9% of 128GB)
+  # Maximum batch size for optimal performance - still 88% RAM headroom available!
+  batch_size: 24            # Maximum batch size (optimized for 128GB RAM system)
+  gradient_accumulation_steps: 8  # Effective batch size = 192 (24 * 8)
   num_epochs: 100           # Phase 1: General English pretraining
   learning_rate: 3e-4       # Learning rate (standard for GPT-2)
   weight_decay: 0.02        # Weight decay for regularization (increased from 0.01)
-  num_workers: 12           # Use 12 CPU cores for data loading
+  num_workers: 24           # Use all 24 CPU cores for data loading (increased from 12)
   pin_memory: true          # Pin memory for faster GPU transfer (if CUDA available)
   save_every: 5             # Save checkpoint every 5 epochs
   output_dir: "./models/pretrained_gpt2_large"
