@@ -23,8 +23,9 @@ wheels/
 .installed.cfg
 *.egg
 
-# Model files
-models/
+# Model files (exclude checkpoints, but include source code)
+models/pretrained/
+models/instruction_tuned/
 checkpoints/
 *.bin
 *.safetensors
