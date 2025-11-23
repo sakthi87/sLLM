@@ -1,0 +1,36 @@
+# Pretraining Configuration Optimized for M1 Mac (8GB RAM)
+# Smaller model and batch sizes for your hardware
+
+model:
+  # Reduced model size for 8GB RAM
+  d_model: 512              # Reduced from 768 (smaller model)
+  n_layers: 8               # Reduced from 12 (fewer layers)
+  n_heads: 8                # Reduced from 12 (fewer heads)
+  d_ff: 2048                # Reduced from 3072 (smaller FF)
+  max_seq_len: 256          # Reduced from 512 (shorter sequences)
+  dropout: 0.1
+
+training:
+  # Very small batches for 8GB RAM
+  batch_size: 2             # Very small batch (reduce to 1 if OOM)
+  gradient_accumulation_steps: 16  # Accumulate to maintain effective batch size
+  num_epochs: 100           # Large number for nightly training (stops by time limit)
+  save_every: 1             # Save every epoch for nightly resumption
+  learning_rate: 0.0003  # 3e-4 as float
+  weight_decay: 0.01
+  num_workers: 2            # Reduced workers for M1
+  output_dir: "./models/pretrained"
+  
+  # M1-specific optimizations
+  use_mps: true              # Use Metal Performance Shaders if available
+  use_cpu: false             # Set to true if MPS causes issues
+  mixed_precision: false     # Disable for stability on M1
+
+data:
+  # Use smaller dataset initially
+  pretraining_data_path: "./data/pretraining/combined_pretraining_data.txt"
+  max_samples: 10000         # Limit samples for initial training
+  chunk_size: 5000          # Smaller chunks
+
+tokenizer_path: "./tokenizer"
+

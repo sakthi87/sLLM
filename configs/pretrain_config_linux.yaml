@@ -1,0 +1,67 @@
+# Pretraining Configuration - GPT-2 Large Architecture
+# Optimized for Linux VM (120GB RAM, 24 CPU cores)
+# Target: English fluency first, then domain-specific fine-tuning
+
+model:
+  # GPT-2 Large architecture (762M parameters)
+  d_model: 1280             # Hidden dimension (GPT-2 Large)
+  n_layers: 36              # Number of transformer layers (GPT-2 Large)
+  n_heads: 20               # Number of attention heads (d_model / 64)
+  d_ff: 5120                # Feed-forward dimension (4 * d_model)
+  max_seq_len: 1024         # Maximum sequence length (GPT-2 Large)
+  dropout: 0.15             # Dropout rate (increased from 0.1 for better regularization)
+
+training:
+  # Training parameters - OPTIMIZED for 120GB RAM and 24 CPU cores
+  batch_size: 4             # Batch size (adjust based on memory)
+  gradient_accumulation_steps: 8  # Effective batch size = 32
+  num_epochs: 100           # Phase 1: General English pretraining
+  learning_rate: 3e-4       # Learning rate (standard for GPT-2)
+  weight_decay: 0.02        # Weight decay for regularization (increased from 0.01)
+  num_workers: 12           # Use 12 CPU cores for data loading
+  pin_memory: true          # Pin memory for faster GPU transfer (if CUDA available)
+  save_every: 5             # Save checkpoint every 5 epochs
+  output_dir: "./models/pretrained_gpt2_large"
+  
+  # Training improvements
+  use_mixed_precision: true # Enable mixed precision (FP16) for faster training
+  max_grad_norm: 1.0        # Gradient clipping to prevent instability
+  
+  # Learning rate schedule
+  use_warmup: true          # Enable learning rate warmup
+  warmup_steps: 1000        # Warmup steps (recommended: 500-1000, reduced from 2000)
+  use_cosine_decay: true    # Use cosine annealing decay
+  cosine_restart_epochs: 10 # Restart cosine schedule every 10 epochs
+  label_smoothing: 0.1      # Label smoothing for better generalization
+  
+  # Validation and monitoring
+  val_split: 0.1            # Validation split (10% of data)
+  early_stopping: true      # Enable early stopping
+  early_stopping_patience: 5  # Patience for early stopping (epochs)
+  target_loss: 2.5          # Target loss for Phase 1 (English fluency)
+  use_tensorboard: true     # Enable TensorBoard logging
+  tensorboard_log_dir: "./runs/pretraining_gpt2_large"
+  
+  # Checkpoint cleanup - Disk space management
+  cleanup_checkpoints: true  # Automatically clean up old checkpoints
+  keep_last_checkpoints: 3  # Keep last N checkpoints (GPT-2 Large checkpoints are large)
+  keep_milestone_checkpoints: true  # Keep checkpoints at milestones (every 10th epoch)
+  milestone_interval: 10    # Milestone interval (e.g., 10 = every 10th epoch)
+  keep_best_checkpoint: true  # Keep checkpoint with lowest loss
+
+data:
+  # Phase 1: General English pretraining data
+  # Use large English corpus (Wikipedia, books, web text)
+  pretraining_data_path: null  # null = use all data directories
+  data_dir: "./data"           # Base directory for all data
+  max_samples: null            # Limit number of samples (null = use all)
+  
+  # Data sources (will be loaded from data/ directory):
+  # - data/pretraining/ - General English text
+  # - data/conversational/ - Conversational datasets (for fluency)
+  # Note: Domain-specific data will be used in Phase 2 (fine-tuning)
+
+tokenizer_path: "./tokenizer"  # Path to trained tokenizer
+# IMPORTANT: For GPT-2 Large, tokenizer should have vocab_size=50257
+# Current tokenizer has 16k vocab - retrain with: python scripts/train_tokenizer.py --vocab_size 50257
+
