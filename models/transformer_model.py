@@ -9,6 +9,35 @@ import math
 from typing import Optional, Tuple
 
 
+class RMSNorm(nn.Module):
+    """
+    Root Mean Square Layer Normalization (RMSNorm).
+    More efficient and stable than LayerNorm, especially for FP16 training.
+    Used by modern models like LLaMA, TinyLlama, Phi, Falcon.
+    
+    Reference: https://arxiv.org/abs/1910.07467
+    """
+    
+    def __init__(self, d_model: int, eps: float = 1e-6):
+        super().__init__()
+        self.d_model = d_model
+        self.eps = eps
+        # Learnable scale parameter (no bias term)
+        self.weight = nn.Parameter(torch.ones(d_model))
+    
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """
+        Args:
+            x: Input tensor [batch_size, seq_len, d_model] or [batch_size, d_model]
+        Returns:
+            Normalized tensor with same shape
+        """
+        # Calculate RMS (Root Mean Square)
+        rms = torch.sqrt(torch.mean(x ** 2, dim=-1, keepdim=True) + self.eps)
+        # Normalize and scale
+        return x / rms * self.weight
+
+
 class MultiHeadAttention(nn.Module):
     """Multi-head self-attention mechanism."""
     
@@ -75,12 +104,17 @@ class FeedForward(nn.Module):
 class TransformerBlock(nn.Module):
     """Single transformer block with attention and feed-forward."""
     
-    def __init__(self, d_model: int, n_heads: int, d_ff: int, dropout: float = 0.1):
+    def __init__(self, d_model: int, n_heads: int, d_ff: int, dropout: float = 0.1, use_rmsnorm: bool = True):
         super().__init__()
         self.attention = MultiHeadAttention(d_model, n_heads, dropout)
         self.feed_forward = FeedForward(d_model, d_ff, dropout)
-        self.norm1 = nn.LayerNorm(d_model)
-        self.norm2 = nn.LayerNorm(d_model)
+        # Use RMSNorm for better performance and FP16 stability
+        if use_rmsnorm:
+            self.norm1 = RMSNorm(d_model)
+            self.norm2 = RMSNorm(d_model)
+        else:
+            self.norm1 = nn.LayerNorm(d_model)
+            self.norm2 = nn.LayerNorm(d_model)
         self.dropout = nn.Dropout(dropout)
         
     def forward(self, x: torch.Tensor, mask: Optional[torch.Tensor] = None) -> torch.Tensor:
@@ -110,7 +144,8 @@ class ChartLanguageModel(nn.Module):
         d_ff: int = 3072,
         max_seq_len: int = 512,
         dropout: float = 0.1,
-        pad_token_id: int = 0
+        pad_token_id: int = 0,
+        use_rmsnorm: bool = True
     ):
         super().__init__()
         self.vocab_size = vocab_size
@@ -122,14 +157,17 @@ class ChartLanguageModel(nn.Module):
         self.token_embedding = nn.Embedding(vocab_size, d_model)
         self.position_embedding = nn.Embedding(max_seq_len, d_model)
         
-        # Transformer blocks
+        # Transformer blocks (use RMSNorm by default)
         self.blocks = nn.ModuleList([
-            TransformerBlock(d_model, n_heads, d_ff, dropout)
+            TransformerBlock(d_model, n_heads, d_ff, dropout, use_rmsnorm=use_rmsnorm)
             for _ in range(n_layers)
         ])
         
-        # Final layer norm and output projection
-        self.ln_f = nn.LayerNorm(d_model)
+        # Final layer norm (use RMSNorm by default)
+        if use_rmsnorm:
+            self.ln_f = RMSNorm(d_model)
+        else:
+            self.ln_f = nn.LayerNorm(d_model)
         self.head = nn.Linear(d_model, vocab_size, bias=False)
         
         # Tie weights: output embedding = input embedding (common in GPT models)
@@ -150,6 +188,8 @@ class ChartLanguageModel(nn.Module):
             torch.nn.init.normal_(module.weight, mean=0.0, std=0.02)
         elif isinstance(module, nn.LayerNorm):
             torch.nn.init.zeros_(module.bias)
+            torch.nn.init.ones_(module.weight)
+        elif isinstance(module, RMSNorm):
             torch.nn.init.ones_(module.weight)
     
     def forward(
