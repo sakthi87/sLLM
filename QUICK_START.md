@@ -9,8 +9,8 @@ Simple step-by-step commands to train GPT-2 Large from scratch.
 ### 1.1 Create Virtual Environment
 
 ```bash
-# Navigate to project directory
-cd /Users/subhalakshmiraj/Documents/ChartsLLM
+# Navigate to project directory (adjust path as needed)
+cd /path/to/ChartsLLM
 
 # Create virtual environment
 python3 -m venv venv
@@ -24,7 +24,7 @@ which python
 
 **Expected Output:**
 ```
-/Users/subhalakshmiraj/Documents/ChartsLLM/venv/bin/python
+/path/to/ChartsLLM/venv/bin/python
 ```
 
 ---
@@ -307,7 +307,8 @@ Generated: ... (model continuation)
 # ============================================
 
 # Step 1: Setup
-cd /Users/subhalakshmiraj/Documents/ChartsLLM
+# Navigate to project directory (adjust path as needed)
+cd /path/to/ChartsLLM
 python3 -m venv venv
 source venv/bin/activate
 pip install --upgrade pip
@@ -364,7 +365,7 @@ python scripts/inference.py \
 
 ```bash
 # Make sure you're in the project directory
-cd /Users/subhalakshmiraj/Documents/ChartsLLM
+cd /path/to/ChartsLLM
 
 # Try explicit path
 source ./venv/bin/activate
