@@ -179,9 +179,13 @@ Test: [1234, 5678]
 CONFIG_FILE="configs/pretrain_config_mac.yaml"
 ```
 
-**For Linux (120GB RAM) - GPT-2 Large:**
+**For Linux (128GB RAM) - Options:**
 ```bash
+# Option 1: GPT-2 Large (773M parameters)
 CONFIG_FILE="configs/pretrain_config_linux.yaml"
+
+# Option 2: 1.3B Model (1.211B parameters) - Recommended for better quality
+CONFIG_FILE="configs/pretrain_config_linux_1.3b.yaml"
 ```
 
 ### 6.2 Verify Configuration
@@ -202,7 +206,12 @@ cat $CONFIG_FILE
 python scripts/pretrain.py --config configs/pretrain_config_mac.yaml
 ```
 
-**For Linux (GPT-2 Large):**
+**For Linux (1.3B Model - Recommended):**
+```bash
+python scripts/pretrain.py --config configs/pretrain_config_linux_1.3b.yaml
+```
+
+**For Linux (GPT-2 Large - 773M):**
 ```bash
 python scripts/pretrain.py --config configs/pretrain_config_linux.yaml
 ```
@@ -330,8 +339,11 @@ python scripts/train_tokenizer.py \
 # For Mac:
 python scripts/pretrain.py --config configs/pretrain_config_mac.yaml
 
-# For Linux (GPT-2 Large):
-python scripts/pretrain.py --config configs/pretrain_config_linux.yaml
+# For Linux (1.3B Model - Recommended):
+python scripts/pretrain.py --config configs/pretrain_config_linux_1.3b.yaml
+
+# For Linux (GPT-2 Large - 773M):
+# python scripts/pretrain.py --config configs/pretrain_config_linux.yaml
 
 # Step 7: Monitor (in another terminal)
 source venv/bin/activate
@@ -403,7 +415,7 @@ python scripts/pretrain.py \
 | Data Collection | 1-2 days | 50GB download + processing (can be parallelized) |
 | Tokenizer Training | 2-4 hours | Depends on data size, 24 CPU cores |
 | Pretraining (Mac) | 10+ days | 8GB RAM, overnight runs |
-| Pretraining (Linux 128GB) | 12-24 hours | 128GB RAM, batch_size=24, optimized |
+| Pretraining (Linux 128GB - 1.3B) | 12-24 hours | 128GB RAM, batch_size=20, seq_len=2048, CPU-only |
 
 **Total (Linux 128GB):** ~1.5-2.5 days (with optimized batch_size=24)  
 **Total (Mac):** ~2-3 weeks
